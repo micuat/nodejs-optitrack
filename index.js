@@ -74,8 +74,8 @@ var _unpack_rigid_bodies = function (data, offset) {
         var mrk_mean_error = data.readFloatLE(offset);
         offset += 4;
 
-        var tracking_valid = data.readInt32LE(offset) & 0x01 == 1;
-        offset += 2;
+        // var tracking_valid = data.readInt32LE(offset) & 0x01 == 1;
+        // offset += 2;
         var rb = {
             id: rbid,
             position: [x,y,z],
@@ -84,7 +84,7 @@ var _unpack_rigid_bodies = function (data, offset) {
             mrk_ids: mrk_ids,
             mrk_sizes: mrk_sizes,
             mrk_mean_error: mrk_mean_error,
-            tracking_valid: tracking_valid
+            // tracking_valid: tracking_valid
         };
         rbodies.push(rb);
     }
