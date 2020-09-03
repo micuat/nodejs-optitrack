@@ -1,11 +1,3 @@
-Buffer.prototype.readUIntLE = function(start, end) {
-    return this.slice(start, end).readUInt32LE(0, true);
-}
-
-Buffer.prototype.readIntLE = function(start, end) {
-    return this.slice(start, end).readInt32LE(0, true);
-}
-
 Buffer.prototype.readCString = function(offset) {
     var start = offset;
     while (offset < this.length && this[offset] != '0') {
@@ -82,7 +74,8 @@ var _unpack_rigid_bodies = function (data, offset) {
         var mrk_mean_error = data.readFloatLE(offset);
         offset += 4;
 
-        var tracking_valid = data.readIntLE(offset, offset += 2) & 0x01 == 1;
+        var tracking_valid = data.readInt32LE(offset) & 0x01 == 1;
+        offset += 2;
         var rb = {
             id: rbid,
             position: [x,y,z],
@@ -114,27 +107,28 @@ var _unpack_skeletons = function (data, offset) {
 }
 
 var _unpack_labeled_markers = function(data, offset) {
-    var nmarkers = data.readInt8(offset);
+    var nmarkers = data.readInt32LE(offset);
     offset += 4;
     var lmarkers = [];
     for (i=0; i < nmarkers; i++) {
-        var id = data.readInt8(offset);
+        var id = data.readInt32LE(offset);
         var x = data.readFloatLE(offset += 4);
         var y = data.readFloatLE(offset += 4);
         var z = data.readFloatLE(offset += 4);
         var size = data.readFloatLE(offset += 4);
         offset += 4;
-        var params = data.readIntLE(offset, offset += 2);
-        var occluded = params & 0x01 == 1
-        var pc_solved = params & 0x02 == 2
-        var model_solved = params & 0x04 == 4
+        // var params = data.readInt32LE(offset);
+        // offset += 2;
+        // var occluded = params & 0x01 == 1
+        // var pc_solved = params & 0x02 == 2
+        // var model_solved = params & 0x04 == 4
         lmarkers.push({
             id: id,
             position: [x, y, z],
             size: size,
-            occluded: occluded,
-            pc_solved: pc_solved,
-            model_solved: model_solved
+            // occluded: occluded,
+            // pc_solved: pc_solved,
+            // model_solved: model_solved
         });
     }
     return {lmarkers: lmarkers, offset: offset};
@@ -142,11 +136,11 @@ var _unpack_labeled_markers = function(data, offset) {
 
 
 var _unpack_frameofdata = function (data, offset) {
-    frameno = data.readInt8(offset);
+    frameno = data.readInt32LE(offset);
     offset += 4;
 
     // identified marker sets
-    nsets = data.readInt8(offset);
+    nsets = data.readInt32LE(offset);
     offset += 4;
     sets = {}
     if (nsets) {
@@ -177,10 +171,11 @@ var _unpack_frameofdata = function (data, offset) {
     var latency = data.readFloatLE(offset);
     var timecode = data.readUInt8(offset += 4);
     var timecode_sub = data.readUInt8(offset += 4);
-    var timestamp = data.readDoubleLE(offset += 4);
-    var params = data.readIntLE(offset += 8, offset += 2);
-    var is_recording = params & 0x01 == 1
-    var tracked_models_changed = params & 0x02 == 2
+    // var timestamp = data.readDoubleLE(offset += 4);
+    // var params = data.readInt32LE(offset += 8);
+    // offset += 2;
+    // var is_recording = params & 0x01 == 1
+    // var tracked_models_changed = params & 0x02 == 2
     var eod = data.readInt8(offset);
     offset += 4;
     if (eod != 0)
@@ -194,9 +189,9 @@ var _unpack_frameofdata = function (data, offset) {
         labeled_markers: lmarkers,
         latency: latency,
         timecode: [timecode, timecode_sub],
-        timestamp: timestamp,
-        is_recording: is_recording,
-        tracked_models_changed: tracked_models_changed
+        // timestamp: timestamp,
+        // is_recording: is_recording,
+        // tracked_models_changed: tracked_models_changed
     }
     return fod;
 }
@@ -214,8 +209,8 @@ var unpack = function(data) {
         return;
 
     offset = 0;
-    var msgtype = data.readUIntLE(offset, offset += 2);
-    var nbytes = data.readUIntLE(offset, offset += 2);
+    var msgtype = data.readUInt8(offset, offset += 2);
+    var nbytes = data.readUInt8(offset, offset += 2);
 
     if (msgtype == NAT_FRAMEOFDATA) {
         // frame, data = _unpack_frameofdata(res.data, offset);
